@@ -1,0 +1,56 @@
+#!/usr/bin/env python3
+import os
+import sys
+import urllib.request
+
+APP_DIR = os.path.expanduser("~/.local/share/applications")
+ICON_DIR = os.path.expanduser("~/.local/share/icons")
+
+# Ensure directories exist
+os.makedirs(APP_DIR, exist_ok=True)
+os.makedirs(ICON_DIR, exist_ok=True)
+
+def get_favicon(url):
+    """Fetch the site's favicon if no icon is provided."""
+    icon_url = url.rstrip('/') + "/favicon.ico"
+    icon_path = os.path.join(ICON_DIR, url.replace("https://", "").replace("http://", "").split("/")[0] + ".png")
+    
+    try:
+        urllib.request.urlretrieve(icon_url, icon_path)
+        return icon_path
+    except Exception:
+        print("⚠️ Failed to fetch favicon, using default browser icon.")
+        return "/usr/share/icons/hicolor/48x48/apps/firefox.png"
+
+def create_desktop_entry(name, url, icon):
+    """Generate a .desktop file to launch the web app."""
+    desktop_file = os.path.join(APP_DIR, f"{name}.desktop")
+    with open(desktop_file, "w") as f:
+        f.write(f"""[Desktop Entry]
+Name={name}
+Exec=firefox --new-window --kiosk "{url}"
+Icon={icon}
+Type=Application
+Categories=Network;WebApp;
+Terminal=false
+""")
+    os.chmod(desktop_file, 0o755)
+    print(f"✅ Web app '{name}' added successfully!")
+
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: spindle add <URL> [-I <icon_path>]")
+        sys.exit(1)
+
+    if sys.argv[1] == "add":
+        url = sys.argv[2]
+        name = url.replace("https://", "").replace("http://", "").split("/")[0]  # e.g., youtube.com
+        icon = get_favicon(url)
+
+        if "-I" in sys.argv:
+            icon = sys.argv[sys.argv.index("-I") + 1]
+
+        create_desktop_entry(name, url, icon)
+
+if __name__ == "__main__":
+    main()
