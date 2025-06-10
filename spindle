@@ -28,7 +28,7 @@ def create_desktop_entry(name, url, icon):
     with open(desktop_file, "w") as f:
         f.write(f"""[Desktop Entry]
 Name={name}
-Exec=firefox --new-window --kiosk "{url}"
+Exec=firefox --new-window "{url}"
 Icon={icon}
 Type=Application
 Categories=Network;WebApp;
@@ -44,7 +44,7 @@ def main():
 
     if sys.argv[1] == "add":
         url = sys.argv[2]
-        name = url.replace("https://", "").replace("http://", "").split("/")[0]  # e.g., youtube.com
+        name = url.replace("https://", "").replace("http://", "").replace("www.", "").split("/")[0]  # e.g., youtube.com
         icon = get_favicon(url)
 
         if "-I" in sys.argv:
